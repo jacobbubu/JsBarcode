@@ -85,13 +85,26 @@ class SVGRenderer{
 	drawSVGText(parent, options, encoding){
 		var textElem = this.document.createElementNS(svgns, 'text');
 
-		// Draw the text if displayValue is set
+		// Draw the text if displayValue is setfontName: "ocr-a"
 		if(options.displayValue){
 			var x, y;
 
-			textElem.setAttribute("style",
-				"font:" + options.fontOptions + " " + options.fontSize + "px " + options.font
-			);
+			var styleStr = '';
+			styleStr = "font-size: " + options.fontSize + "px" + "; ";
+			styleStr += "font-family: " + options.font + "; ";
+			if (options.fontOptions.indexOf('bold') >= 0 ) {
+				styleStr += "font-weight: bold; ";
+			}
+			if (options.fontOptions.indexOf('italic') >= 0 ) {
+				styleStr += "font-style: italic; ";
+			}
+			if (options.fontOptions.indexOf('normal') >= 0 ) {
+				styleStr += "font-style: normal; ";
+			}
+			if (options.fontOptions.indexOf('oblique') >= 0 ) {
+				styleStr += "font-style: oblique; ";
+			}
+			textElem.setAttribute("style", styleStr);
 
 			if(options.textPosition == "top"){
 				y = options.fontSize - options.textMargin;

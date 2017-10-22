@@ -19,6 +19,7 @@ declare namespace JsBarcode {
     marginLeft?: number;
     marginRight?: number;
     valid?: (valid: boolean) => void;
+    xmlDocument?: any;
   }
 
   interface Code128Options extends BaseOptions {
