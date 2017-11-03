@@ -65,7 +65,7 @@
     "webpack-stream": "^3.1.0",
     "xmldom": "^0.1.27"
   },
-  "typings": "./jsbarcode.d.ts",
+  "typings": "./jsbarcode2.d.ts",
   "config": {
     "blanket": {
       "pattern": [
