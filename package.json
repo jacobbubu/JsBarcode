@@ -1,6 +1,6 @@
 {
   "name": "jsbarcode2",
-  "version": "3.8.0",
+  "version": "3.8.2",
   "description": "JsBarcode is a customizable barcode generator with support for multiple barcode formats.",
   "main": "./bin/JsBarcode.js",
   "directories": {
@@ -36,6 +36,7 @@
     "url": "https://github.com/jacobbubu/JsBarcode/issues"
   },
   "homepage": "https://github.com/jacobbubu/JsBarcode#readme",
+  "files": ["bin", "jsbarcode2.d.ts"],
   "devDependencies": {
     "babel-cli": "^6.24.1",
     "babel-core": "^6.24.1",
