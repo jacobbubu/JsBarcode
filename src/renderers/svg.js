@@ -1,25 +1,33 @@
 import merge from "../help/merge.js";
-import {calculateEncodingAttributes, getTotalWidthOfEncodings, getMaximumHeightOfEncodings} from "./shared.js";
+import {
+	calculateEncodingAttributes,
+	getTotalWidthOfEncodings,
+	getMaximumHeightOfEncodings
+} from "./shared.js";
 
 var svgns = "http://www.w3.org/2000/svg";
 
-class SVGRenderer{
-	constructor(svg, encodings, options){
+class SVGRenderer {
+	constructor(svg, encodings, options) {
 		this.svg = svg;
 		this.encodings = encodings;
 		this.options = options;
 		this.document = options.xmlDocument || document;
 	}
 
-	render(){
+	render() {
 		var currentX = this.options.marginLeft;
 
 		this.prepareSVG();
-		for(let i = 0; i < this.encodings.length; i++){
+		for (let i = 0; i < this.encodings.length; i++) {
 			var encoding = this.encodings[i];
 			var encodingOptions = merge(this.options, encoding.options);
 
-			var group = this.createGroup(currentX, encodingOptions.marginTop, this.svg);
+			var group = this.createGroup(
+				currentX,
+				encodingOptions.marginTop,
+				this.svg
+			);
 
 			this.setGroupOptions(group, encodingOptions);
 
@@ -30,7 +38,7 @@ class SVGRenderer{
 		}
 	}
 
-	prepareSVG(){
+	prepareSVG() {
 		// Clear the SVG
 		while (this.svg.firstChild) {
 			this.svg.removeChild(this.svg.firstChild);
@@ -40,90 +48,162 @@ class SVGRenderer{
 		var totalWidth = getTotalWidthOfEncodings(this.encodings);
 		var maxHeight = getMaximumHeightOfEncodings(this.encodings);
 
-		var width = totalWidth + this.options.marginLeft + this.options.marginRight;
+		var width =
+			totalWidth + this.options.marginLeft + this.options.marginRight;
 		this.setSvgAttributes(width, maxHeight);
 
-		if(this.options.background){
+		if (this.options.background) {
 			this.drawRect(0, 0, width, maxHeight, this.svg).setAttribute(
-				"style", "fill:" + this.options.background + ";"
+				"style",
+				"fill:" + this.options.background + ";"
 			);
 		}
 	}
 
-	drawSvgBarcode(parent, options, encoding){
+	drawSvgBarcode(parent, options, encoding) {
 		var binary = encoding.data;
 
 		// Creates the barcode out of the encoded binary
 		var yFrom;
-		if(options.textPosition == "top"){
+		if (options.textPosition == "top") {
 			yFrom = options.fontSize + options.textMargin;
-		}
-		else{
+		} else {
 			yFrom = 0;
 		}
 
+		var { newY, height } = this.drawCornerText(
+			parent,
+			options,
+			encoding,
+			yFrom
+		);
+
 		var barWidth = 0;
 		var x = 0;
-		for(var b = 0; b < binary.length; b++){
+		for (var b = 0; b < binary.length; b++) {
 			x = b * options.width + encoding.barcodePadding;
 
-			if(binary[b] === "1"){
+			if (binary[b] === "1") {
 				barWidth++;
-			}
-			else if(barWidth > 0){
-				this.drawRect(x - options.width * barWidth, yFrom, options.width * barWidth, options.height, parent);
+			} else if (barWidth > 0) {
+				this.drawRect(
+					x - options.width * barWidth,
+					newY,
+					options.width * barWidth,
+					options.height - height,
+					parent
+				);
 				barWidth = 0;
 			}
 		}
 
 		// Last draw is needed since the barcode ends with 1
-		if(barWidth > 0){
-			this.drawRect(x - options.width * (barWidth - 1), yFrom, options.width * barWidth, options.height, parent);
+		if (barWidth > 0) {
+			this.drawRect(
+				x - options.width * (barWidth - 1),
+				newY,
+				options.width * barWidth,
+				options.height - height,
+				parent
+			);
 		}
 	}
 
-	drawSVGText(parent, options, encoding){
-		var textElem = this.document.createElementNS(svgns, 'text');
+	drawCornerText(parent, options, encoding, yFrom) {
+		if (options.cornerText) {
+			var textElem = this.document.createElementNS(svgns, "text");
+			var x,
+				y = yFrom;
 
-		// Draw the text if displayValue is setfontName: "ocr-a"
-		if(options.displayValue){
-			var x, y;
-
-			var styleStr = '';
-			styleStr = "font-size: " + options.fontSize + "px" + "; ";
+			var styleStr = "";
+			styleStr = "font-size: " + options.cornerTextFontSize + "px" + "; ";
 			styleStr += "font-family: " + options.font + "; ";
-			if (options.fontOptions.indexOf('bold') >= 0 ) {
+			if (options.cornerTextFontOptions.indexOf("bold") >= 0) {
 				styleStr += "font-weight: bold; ";
 			}
-			if (options.fontOptions.indexOf('italic') >= 0 ) {
+			if (options.cornerTextFontOptions.indexOf("italic") >= 0) {
 				styleStr += "font-style: italic; ";
 			}
-			if (options.fontOptions.indexOf('normal') >= 0 ) {
+			if (options.cornerTextFontOptions.indexOf("normal") >= 0) {
 				styleStr += "font-style: normal; ";
 			}
-			if (options.fontOptions.indexOf('oblique') >= 0 ) {
+			if (options.cornerTextFontOptions.indexOf("oblique") >= 0) {
 				styleStr += "font-style: oblique; ";
 			}
 			textElem.setAttribute("style", styleStr);
 
-			if(options.textPosition == "top"){
-				y = options.fontSize - options.textMargin;
+			// Draw the text in the correct X depending on the conerTextAlign option
+			if (
+				options.cornerTextAlign == "left" ||
+				encoding.barcodePadding > 0
+			) {
+				x = 0;
+				textElem.setAttribute("text-anchor", "start");
+			} else if (options.cornerTextAlign == "right") {
+				x = encoding.width - 1;
+				textElem.setAttribute("text-anchor", "end");
+			} else {
+				// In all other cases, center the text
+				x = encoding.width / 2;
+				textElem.setAttribute("text-anchor", "middle");
 			}
-			else{
-				y = options.height + options.textMargin + options.fontSize;
+
+			textElem.setAttribute("x", x);
+			textElem.setAttribute("y", y);
+
+			textElem.appendChild(
+				this.document.createTextNode(options.cornerText)
+			);
+
+			parent.appendChild(textElem);
+			var newY = options.cornerTextMargin;
+			return {
+				newY,
+				height: options.cornerTextMargin + options.cornerTextFontSize
+			};
+		}
+		return { newY: yFrom, height: 0 };
+	}
+
+	drawSVGText(parent, options, encoding) {
+		var textElem = this.document.createElementNS(svgns, "text");
+
+		// Draw the text if displayValue is setfontName: "ocr-a"
+		if (options.displayValue) {
+			var x, y;
+
+			var styleStr = "";
+			styleStr = "font-size: " + options.fontSize + "px" + "; ";
+			styleStr += "font-family: " + options.font + "; ";
+			if (options.fontOptions.indexOf("bold") >= 0) {
+				styleStr += "font-weight: bold; ";
+			}
+			if (options.fontOptions.indexOf("italic") >= 0) {
+				styleStr += "font-style: italic; ";
+			}
+			if (options.fontOptions.indexOf("normal") >= 0) {
+				styleStr += "font-style: normal; ";
+			}
+			if (options.fontOptions.indexOf("oblique") >= 0) {
+				styleStr += "font-style: oblique; ";
+			}
+			textElem.setAttribute("style", styleStr);
+
+			if (options.textPosition == "top") {
+				y = options.fontSize - options.textMargin;
+			} else {
+				y = options.height + options.textMargin;
 			}
 
 			// Draw the text in the correct X depending on the textAlign option
-			if(options.textAlign == "left" || encoding.barcodePadding > 0){
+			if (options.textAlign == "left" || encoding.barcodePadding > 0) {
 				x = 0;
 				textElem.setAttribute("text-anchor", "start");
-			}
-			else if(options.textAlign == "right"){
+			} else if (options.textAlign == "right") {
 				x = encoding.width - 1;
 				textElem.setAttribute("text-anchor", "end");
-			}
-			// In all other cases, center the text
-			else{
+			} else {
+				// In all other cases, center the text
 				x = encoding.width / 2;
 				textElem.setAttribute("text-anchor", "middle");
 			}
@@ -137,8 +217,7 @@ class SVGRenderer{
 		}
 	}
 
-
-	setSvgAttributes(width, height){
+	setSvgAttributes(width, height) {
 		var svg = this.svg;
 		svg.setAttribute("width", width + "px");
 		svg.setAttribute("height", height + "px");
@@ -152,8 +231,8 @@ class SVGRenderer{
 		svg.setAttribute("style", "transform: translate(0,0)");
 	}
 
-	createGroup(x, y, parent){
-		var group = this.document.createElementNS(svgns, 'g');
+	createGroup(x, y, parent) {
+		var group = this.document.createElementNS(svgns, "g");
 		group.setAttribute("transform", "translate(" + x + ", " + y + ")");
 
 		parent.appendChild(group);
@@ -161,14 +240,12 @@ class SVGRenderer{
 		return group;
 	}
 
-	setGroupOptions(group, options){
-		group.setAttribute("style",
-			"fill:" + options.lineColor + ";"
-		);
+	setGroupOptions(group, options) {
+		group.setAttribute("style", "fill:" + options.lineColor + ";");
 	}
 
-	drawRect(x, y, width, height, parent){
-		var rect = this.document.createElementNS(svgns, 'rect');
+	drawRect(x, y, width, height, parent) {
+		var rect = this.document.createElementNS(svgns, "rect");
 
 		rect.setAttribute("x", x);
 		rect.setAttribute("y", y);

@@ -10,6 +10,11 @@ var defaults = {
 	textPosition: "bottom",
 	textMargin: 2,
 	fontSize: 20,
+	cornerText: undefined,
+	cornerTextAlign: "right",
+	cornerTextMargin: 1,
+	cornerTextFontSize: 8,
+	cornerTextFontOptions: "",
 	background: "#ffffff",
 	lineColor: "#000000",
 	margin: 10,
@@ -17,7 +22,7 @@ var defaults = {
 	marginBottom: undefined,
 	marginLeft: undefined,
 	marginRight: undefined,
-	valid: function(){}
+	valid: function() {}
 };
 
 export default defaults;
