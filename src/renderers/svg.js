@@ -23,9 +23,13 @@ class SVGRenderer {
 			var encoding = this.encodings[i];
 			var encodingOptions = merge(this.options, encoding.options);
 
+			var cornerTextHeight = encodingOptions.cornerText
+				? encodingOptions.cornerTextMargin +
+					encodingOptions.cornerTextFontSize
+				: 0;
 			var group = this.createGroup(
 				currentX,
-				encodingOptions.marginTop,
+				encodingOptions.marginTop + cornerTextHeight,
 				this.svg
 			);
 
