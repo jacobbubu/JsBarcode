@@ -25,7 +25,7 @@ class SVGRenderer {
 
 			var cornerTextHeight = encodingOptions.cornerText
 				? encodingOptions.cornerTextMargin +
-					encodingOptions.cornerTextFontSize
+				  encodingOptions.cornerTextFontSize
 				: 0;
 			var group = this.createGroup(
 				currentX,
@@ -196,7 +196,15 @@ class SVGRenderer {
 			if (options.textPosition == "top") {
 				y = options.fontSize - options.textMargin;
 			} else {
-				y = options.height + options.textMargin;
+				if (options.cornerText) {
+					y = options.height + options.textMargin;
+				} else {
+					y =
+						options.fontSize -
+						options.marginTop +
+						options.height +
+						options.textMargin;
+				}
 			}
 
 			// Draw the text in the correct X depending on the textAlign option
