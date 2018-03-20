@@ -23,13 +23,9 @@ class SVGRenderer {
 			var encoding = this.encodings[i];
 			var encodingOptions = merge(this.options, encoding.options);
 
-			var cornerTextHeight = encodingOptions.cornerText
-				? encodingOptions.cornerTextMargin +
-				  encodingOptions.cornerTextFontSize
-				: 0;
 			var group = this.createGroup(
 				currentX,
-				encodingOptions.marginTop + cornerTextHeight,
+				encodingOptions.marginTop,
 				this.svg
 			);
 
@@ -117,7 +113,7 @@ class SVGRenderer {
 		if (options.cornerText) {
 			var textElem = this.document.createElementNS(svgns, "text");
 			var x,
-				y = yFrom;
+				y = yFrom + options.cornerTextFontSize;
 
 			var styleStr = "";
 			styleStr = "font-size: " + options.cornerTextFontSize + "px" + "; ";
@@ -160,10 +156,10 @@ class SVGRenderer {
 			);
 
 			parent.appendChild(textElem);
-			var newY = options.cornerTextMargin;
+			var newY = y + options.cornerTextMargin;
 			return {
 				newY,
-				height: options.cornerTextMargin + options.cornerTextFontSize
+				height: options.cornerTextFontSize + options.cornerTextMargin
 			};
 		}
 		return { newY: yFrom, height: 0 };
@@ -194,17 +190,9 @@ class SVGRenderer {
 			textElem.setAttribute("style", styleStr);
 
 			if (options.textPosition == "top") {
-				y = options.fontSize - options.textMargin;
+				y = options.fontSize;
 			} else {
-				if (options.cornerText) {
-					y = options.height + options.textMargin;
-				} else {
-					y =
-						options.fontSize -
-						options.marginTop +
-						options.height +
-						options.textMargin;
-				}
+				y = options.height + options.textMargin + options.fontSize;
 			}
 
 			// Draw the text in the correct X depending on the textAlign option
